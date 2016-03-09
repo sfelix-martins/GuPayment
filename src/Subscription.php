@@ -8,12 +8,6 @@ use Symfony\Component\Console\Exception\LogicException;
 
 class Subscription extends Model
 {
-    /**
-     * The attributes that aren't mass assignable.
-     *
-     * @var array
-     */
-    protected $guarded = [];
 
     /**
      * The attributes that should be mutated to dates.
@@ -24,6 +18,11 @@ class Subscription extends Model
         'trial_ends_at', 'ends_at',
         'created_at', 'updated_at',
     ];
+
+    public function __construct() {
+        parent::__construct();
+        $this->table = config('services.iugu.signature_table', 'subscriptions');
+    }
 
     /**
      * Get the user that owns the subscription.

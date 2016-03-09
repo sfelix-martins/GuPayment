@@ -109,7 +109,7 @@ class SubscriptionBuilder
     {
         $customer = $this->getIuguCustomer($token, $options);
 
-        $subscription = $this->user->createIuguSubscription($this->buildPayload($customer->id));
+        $subscriptionIugu = $this->user->createIuguSubscription($this->buildPayload($customer->id));
 
         if ($this->skipTrial) {
             $trialEndsAt = null;
@@ -117,13 +117,14 @@ class SubscriptionBuilder
             $trialEndsAt = $this->trialDays ? Carbon::now()->addDays($this->trialDays) : null;
         }
 
-        return $this->user->subscriptions()->create([
-            'name' => $this->name,
-            'iugu_id' => $subscription->id,
-            'iugu_plan' => $this->plan,
-            'trial_ends_at' => $trialEndsAt,
-            'ends_at' => null,
-        ]);
+        $subscription = new Subscription();
+        $subscription->name = $this->name;
+        $subscription->iugu_id =  $subscriptionIugu->id;
+        $subscription->iugu_plan =  $this->plan;
+        $subscription->trial_ends_at = $trialEndsAt;
+        $subscription->ends_at = null;
+
+        return $this->user->subscriptions()->save($subscription);
     }
 
     /**
