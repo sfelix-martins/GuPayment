@@ -3,6 +3,7 @@
 namespace Potelo\GuPayment;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class SubscriptionBuilder
 {
@@ -55,11 +56,12 @@ class SubscriptionBuilder
      * @param  string  $name
      * @param  string  $plan
      */
-    public function __construct($user, $name, $plan)
+    public function __construct($user, $name, $plan, $additionalData)
     {
         $this->user = $user;
         $this->name = $name;
         $this->plan = $plan;
+        $this->additionalData = $additionalData;
     }
 
     /**
@@ -124,6 +126,14 @@ class SubscriptionBuilder
         $subscription->trial_ends_at = $trialEndsAt;
         $subscription->ends_at = null;
 
+        foreach($this->additionalData as $k => $v){
+            // If column exists at database
+            if(Schema::hasColumn($subscription->getTable(), $k))
+            {
+                $subscription->{$k} = $v;
+            }
+        }
+
         return $this->user->subscriptions()->save($subscription);
     }
 
@@ -154,14 +164,25 @@ class SubscriptionBuilder
     /**
      * Build the payload for subscription creation.
      *
+     * @param $customerId
      * @return array
      */
     protected function buildPayload($customerId)
     {
+        $customVariables = [];
+        foreach($this->additionalData as $k => $v){
+            $additionalData = [];
+            $additionalData['name'] = $k;
+            $additionalData['value'] = $v;
+
+            $customVariables[] = $additionalData;
+        }
+
         return array_filter([
             'plan_identifier' => $this->plan,
             'expires_at' => $this->getTrialEndForPayload(),
-            "customer_id" => $customerId,
+            'customer_id' => $customerId,
+            'custom_variables' => $customVariables
         ]);
     }
 

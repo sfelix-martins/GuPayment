@@ -19,9 +19,9 @@ trait GuPaymentTrait
     protected static $apiKey;
 
 
-    public function newSubscription($subscription, $plan)
+    public function newSubscription($subscription, $plan, $additionalData = [])
     {
-        return new SubscriptionBuilder($this, $subscription, $plan);
+        return new SubscriptionBuilder($this, $subscription, $plan, $additionalData);
     }
 
     /**
