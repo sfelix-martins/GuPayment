@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 class WebhookController extends Controller
 {
     /**
-     * Handle a Stripe webhook call.
+     * Handle a Iugu webhook call.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Symfony\Component\HttpFoundation\Response
@@ -36,7 +36,7 @@ class WebhookController extends Controller
     }
 
     /**
-     * Handle a suspended customer from a Stripe subscription.
+     * Handle a suspended customer from a Iugu subscription.
      *
      * @param  array  $payload
      * @return \Symfony\Component\HttpFoundation\Response

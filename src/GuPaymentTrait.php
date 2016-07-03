@@ -49,7 +49,7 @@ trait GuPaymentTrait
 
         $this->save();
 
-        // Next we will add the credit card to the user's account on Stripe using this
+        // Next we will add the credit card to the user's account on Iugu using this
         // token that was provided to this method. This will allow us to bill users
         // when they subscribe to plans or we need to do one-off charges on them.
         if (! is_null($token)) {
@@ -169,9 +169,9 @@ trait GuPaymentTrait
 
         $iuguInvoices = Iugu_Invoice::search($parameters)->results();
 
-        // Here we will loop through the Stripe invoices and create our own custom Invoice
+        // Here we will loop through the Iugu invoices and create our own custom Invoice
         // instances that have more helper methods and are generally more convenient to
-        // work with than the plain Stripe objects are. Then, we'll return the array.
+        // work with than the plain Iugu objects are. Then, we'll return the array.
         if (! is_null($iuguInvoices)) {
 
             foreach ($iuguInvoices as $invoice) {

@@ -97,7 +97,7 @@ class Subscription extends Model
     }
 
     /**
-     * Swap the subscription to a new Stripe plan.
+     * Swap the subscription to a new Iugu plan.
      *
      * @param  string  $plan
      * @return $this
@@ -198,7 +198,7 @@ class Subscription extends Model
 
 
     /**
-     * Get the subscription as a Stripe subscription object.
+     * Get the subscription as a Iugu subscription object.
      *
      * @return \Iugu_Subscription
      */

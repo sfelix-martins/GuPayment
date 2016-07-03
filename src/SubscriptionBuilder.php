@@ -90,7 +90,7 @@ class SubscriptionBuilder
     }
 
     /**
-     * Add a new Stripe subscription to the user.
+     * Add a new Iugu subscription to the user.
      *
      * @param  array  $options
      * @return \Potelo\GuPayment\Subscription
@@ -101,7 +101,7 @@ class SubscriptionBuilder
     }
 
     /**
-     * Create a new Stripe subscription.
+     * Create a new Iugu subscription.
      *
      * @param  string|null  $token
      * @param  array  $options
