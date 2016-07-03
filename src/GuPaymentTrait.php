@@ -49,6 +49,13 @@ trait GuPaymentTrait
 
         $this->save();
 
+        // Next we will add the credit card to the user's account on Stripe using this
+        // token that was provided to this method. This will allow us to bill users
+        // when they subscribe to plans or we need to do one-off charges on them.
+        if (! is_null($token)) {
+            $this->updateCard($token);
+        }
+
         return $customer;
     }
 
@@ -248,5 +255,22 @@ trait GuPaymentTrait
     {
         return static::$apiKey ?: config('services.iugu.key');
     }
+
+    /**
+     * Update customers credit card.
+     *
+     * @param string $token
+     */
+    public function updateCard($token)
+    {
+        $customer = $this->asIuguCustomer();
+
+        $customer->payment_methods()->create(Array(
+            "description" => "Credit card",
+            "token" => $token,
+            "set_as_default" => true
+        ));
+    }
+
 
 }
