@@ -123,7 +123,7 @@ class Invoice
 
         return new Response($this->pdf($data), 200, [
             'Content-Description' => 'File Transfer',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
             'Content-Transfer-Encoding' => 'binary',
             'Content-Type' => 'application/pdf',
         ]);

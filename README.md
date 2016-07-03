@@ -35,7 +35,6 @@ Schema::create('[SUA_TABELA_DE_ASSINATURAS]', function ($table) {
     $table->string('name');
     $table->string('iugu_id');
     $table->string('iugu_plan');
-    $table->integer('quantity');
     $table->timestamp('trial_ends_at')->nullable();
     $table->timestamp('ends_at')->nullable();
     $table->timestamps();
