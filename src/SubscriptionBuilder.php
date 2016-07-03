@@ -194,11 +194,11 @@ class SubscriptionBuilder
     protected function getTrialEndForPayload()
     {
         if ($this->skipTrial) {
-            return 'now';
+            return Carbon::now();
         }
 
         if ($this->trialDays) {
-            return Carbon::now()->addDays($this->trialDays)->getTimestamp();
+            return Carbon::now()->addDays($this->trialDays);
         }
     }
 }
