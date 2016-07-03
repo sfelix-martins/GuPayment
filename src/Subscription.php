@@ -19,6 +19,10 @@ class Subscription extends Model
         'created_at', 'updated_at',
     ];
 
+    protected $fillable = [
+        'iugu_plan', 'ends_at'
+    ];
+
     public function __construct() {
         parent::__construct();
         $this->table = config('services.iugu.signature_table', 'subscriptions');
