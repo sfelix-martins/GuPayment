@@ -71,3 +71,28 @@ e no seu arquivo .env você coloca as informações do nome da tabela e da sua c
 IUGU_APIKEY=SUA_CHAVE
 GUPAYMENT_SIGNATURE_TABLE=usuario_assinatura
 ```
+
+## Assinaturas
+
+Para criar uma assinatura, primeiro você precisa ter uma instância de um usuário que extende o GuPaymentTrait. Você então deve usar o método `newSubscription` para criar uma assinatura:
+```
+$user = User::find(1);
+
+$user->newSubscription('main', 'gold')->create($creditCardToken);
+```
+O primeiro argumento deve ser o nome da assinatura. Esse nome não será utilizado no Iugu.com, apenas na sua aplicação. Se sua aplicação tiver apenas um tipo de assinatura, você pode chamá-la de principal ou primária. O segundo argumento é o identificador do plano no Iugu.com.
+
+O método `create` automaticamente criará uma assinatura no Iugu.com e atualizará o seu banco de dados com o ID do cliente referente ao Iugu e outras informações relevantes. Você pode chamar o `create` sem passar nenhum parâmetro ou informar o token do cartão de crédito para que o usuário tenha uma forma de pagamento padrão. Veja como gerar o token em [iugu.js](https://iugu.com/referencias/iugu-js)
+
+### Dados adicionais
+Se você desejar adicionar informações extras ao usuário e assinatura, basta passar um terceiro parâmetro no método `newSubscription` para informações adicionais da assinatura e/ou um segundo parâmetro no método `create` para informações adicionais do cliente:
+```
+$user = User::find(1);
+
+$user->newSubscription('main', 'gold', ['adicional_assinatura' => 'boa assinatura'])
+     ->create(NULL, [
+	     'name' => $user->nome,
+	     'adicional_cliente' => 'bom cliente'
+	 ]);
+```
+Para mais informações dos campos que são suportados pelo Iugu confira a [Documentação oficial](https://iugu.com/referencias/api#assinaturas)
