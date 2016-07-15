@@ -118,3 +118,38 @@ public function handle($request, Closure $next)
     return $next($request);
 }
 ```
+
+Se você precisa saber se um a assinatura de um usuário está no período trial, você pode usar o método `onTrial`. Esse método pode ser útil para informar ao usuário que ele está no período de testes, por exemplo:
+```
+if ($user->subscription('main')->onTrial()) {
+    //
+}
+```
+O método `onPlan` pode ser usado para saber se o usuário está assinando um determinado plano. Por exemplo, para verificar se o usuário assina o plano **gold**:
+```
+if ($user->onPlan('gold')) {
+    //
+}
+```
+Para saber se uma assinatura foi cancelada, basta usar o método `cancelled` na assinatura:
+```
+if ($user->subscription('main')->cancelled()) {
+    //
+}
+```
+Você também pode checar se uma assinatura foi cancelada mas o usuário ainda se encontra no "período de carência". Por exemplo, se um usuário cancelar a assinatura no dia 5 de Março mas a data de vencimento é apenas no dia 10, ele está nesse período de carência até o dia 10. Para saber basta utilizar o método `onGracePeriod`:
+
+```
+if ($user->subscription('main')->onGracePeriod()) {
+    //
+}
+```
+
+### Mudando plano da assinatura
+Se um usuário já possui uma assinatura, ele pode querer mudar para algum outro plano. Por exemplo, um usuário do plano **gold** pode querer economizar e mudar para o plano **silver**. Para mudar o plano de um usuário em uma assinatura, basta usar o método `swap` da seguinte forma:
+
+```
+$user = App\User::find(1);
+
+$user->subscription('main')->swap('silver');
+```
