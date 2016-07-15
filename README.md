@@ -131,6 +131,7 @@ if ($user->onPlan('gold')) {
     //
 }
 ```
+
 Para saber se uma assinatura foi cancelada, basta usar o método `cancelled` na assinatura:
 ```php
 if ($user->subscription('main')->cancelled()) {
