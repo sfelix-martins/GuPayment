@@ -25,7 +25,7 @@ class Subscription extends Model
 
     public function __construct() {
         parent::__construct();
-        $this->table = config('services.iugu.signature_table', 'subscriptions');
+        $this->table = getenv('GUPAYMENT_SIGNATURE_TABLE') ?: config('services.iugu.signature_table', 'subscriptions');
     }
 
     /**
@@ -135,7 +135,7 @@ class Subscription extends Model
         if ($this->onTrial()) {
             $this->ends_at = $this->trial_ends_at;
         } else {
-            $this->ends_at = Carbon::createFromTimestamp(
+            $this->ends_at = Carbon::createFromFormat('Y-m-d',
                 $subscription->expires_at
             );
         }

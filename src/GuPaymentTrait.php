@@ -253,7 +253,15 @@ trait GuPaymentTrait
      */
     public static function getApiKey()
     {
-        return static::$apiKey ?: config('services.iugu.key');
+        if (static::$apiKey) {
+            return static::$apiKey;
+        }
+
+        if ($key = getenv('IUGU_APIKEY')) {
+            return $key;
+        }
+
+        return config('services.iugu.key');
     }
 
     /**
