@@ -214,3 +214,27 @@ class MeuWebhookController extends WebhookController {
     }
 }
 ```
+## Faturas
+Você pode facilmente pegar as faturas de um usuário através do método `invoices`:
+```php
+$invoices = $user->invoices();
+```
+Você pode listar as faturas de um usuário e disponibilizar pdfs de cada uma delas. Por exemplo:
+```html
+<table>
+  @foreach ($user->invoices() as $invoice)
+    <tr>
+      <td>{{ $invoice->date() }}</td>
+      <td>{{ $invoice->total() }}</td>
+      <td><a href="/user/invoice/{{ $invoice->id }}">Download</a></td>
+    </tr>
+  @endforeach
+</table>
+```
+Para gerar o pdf basta utilizar o método `downloadInvoice`:
+```php
+return $user->downloadInvoice($invoiceId, [
+        'vendor'  => 'Sua Empresa',
+        'product' => 'Seu Produto',
+    ]);
+```
