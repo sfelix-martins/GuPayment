@@ -165,3 +165,52 @@ Se um usuário tem uma assinatura cancelada e gostaria de reativá-la, basta uti
 ```php
 $user->subscription('main')->resume();
 ```
+## Assinatura trial
+
+Se você desejar oferecer um período trial para os usuários, você pode usar o método `trialDays` ao criar uma assinatura:
+```php
+$user = User::find(1);
+
+$user->newSubscription('main', 'gold')
+            ->trialDays(10)
+            ->create($creditCardToken);
+```
+O usuário só sebra cobrado, após o período trial. Lembrando que para verificar se um usuário está com a assinatura no período trial, basta chamar o método `onTrial`:
+```php
+if ($user->subscription('main')->onTrial()) {
+    //
+}
+```
+## Tratando os gatilhos (ou Webhooks) 
+[Gatilhos (ou Webhooks)](https://iugu.com/referencias/gatilhos) são endereços (URLs) para onde a Iugu dispara avisos (Via método POST) para certos eventos que ocorrem em sua conta. Por exemplo, se uma assinatura do usuário for cancelada e você precisar registrar isso em seu banco, você pode usar o gatilho. Para utilizar você precisa apontar uma rota para o método `handleWebhook`, a mesma rota que você configurou no seu painel do Iugu:
+```php
+Route::post('webhook', '\Potelo\GuPayment\Http\Controllers@handleWebhook');
+```
+O GuPayment tem métodos para atualizar o seu banco de dados caso uma assinatura seja suspensa ou ela expire. Apontando a rota para esse método, isso ocorrerá de forma automática.
+Lembrando que você precisa desativar a [proteção CRSF](https://laravel.com/docs/5.2/routing#csrf-protection) para essa rota. Você pode colocar a URL em `except` no middleware `VerifyCsrfToken`:
+```php
+protected $except = [
+   'webhook',
+];
+```
+### Outros gatilhos
+O Iugu possui vários outros gatilhos e para você criar para outros eventos basta estender o `WebhookController`. Seus métodos devem corresponder a **handle** + o nome do evento em "camelCase". Por exemplo, ao criar uma nova fatura, o Iugu envia um gatilho com o seguinte evento: `invoice.created`, então basta você criar um método chamado `handleInvoiceCreated`.
+```php
+Route::post('webhook', 'MeuWebhookController@handleWebhook');
+```
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Potelo\GuPayment\Http\Controllers\WebhookController;
+
+class MeuWebhookController extends WebhookController {
+
+    public function handleInvoiceCreated(array $payload)
+    {
+        return 'Fatura criada: ' . $payload['data']['id'];
+    }
+}
+```
