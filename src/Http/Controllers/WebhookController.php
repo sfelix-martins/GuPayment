@@ -20,7 +20,7 @@ class WebhookController extends Controller
      */
     public function handleWebhook(Request $request)
     {
-        $payload = json_decode($request->getContent(), true);
+        $payload = $request->all();
 
         /*if (! $this->isInTestingEnvironment() && ! $this->eventExistsOnStripe($payload['event'])) {
             return;
