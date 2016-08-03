@@ -1,8 +1,10 @@
 <?php
 
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Eloquent\Model as Eloquent;
+use Potelo\GuPayment\Http\Controllers\WebhookController;
 
 class GuPaymentTest extends PHPUnit_Framework_TestCase
 {
@@ -149,6 +151,36 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($subscription->onGracePeriod());
         $this->assertTrue($subscription->onTrial());
         $this->assertEquals(Carbon::today()->addDays(7)->day, $subscription->trial_ends_at->day);
+    }
+
+    public function test_marking_as_cancelled_from_webhook()
+    {
+        $user = User::create([
+            'email' => 'gabriel@teste.com.br',
+            'name' => 'Gabriel Peixoto',
+        ]);
+
+        // Create Subscription
+        $user->newSubscription('main', 'gold')
+            ->create($this->getTestToken());
+
+        $subscription = $user->subscription('main');
+
+        $request = Request::create('/', 'POST', [
+            'event' => 'subscription.expired',
+            'data' => [
+                "id"  => $subscription->iugu_id,
+                "customer_name" => "Gabriel Peixoto",
+                "customer_email" => "gabriel@teste.com.br",
+                "expires_at" => Carbon::now()->format('Y-m-d')
+            ],
+        ]);
+        $controller = new WebhookController();
+        $response = $controller->handleWebhook($request);
+        $this->assertEquals(200, $response->getStatusCode());
+        $user = $user->fresh();
+        $subscription = $user->subscription('main');
+        $this->assertTrue($subscription->cancelled());
     }
 
     protected function getTestToken()
