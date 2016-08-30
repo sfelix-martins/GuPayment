@@ -107,6 +107,7 @@ class SubscriptionBuilder
      *
      * @param  string|null $token
      * @param  array $options
+     * @return \Potelo\GuPayment\Subscription|boolean
      */
     public function create($token = null, array $options = [])
     {

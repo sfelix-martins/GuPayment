@@ -114,11 +114,23 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
 
         // Invoice Tests
         $invoices = $user->invoices();
-        $invoice = $invoices[1];
+        $invoice = $invoices->first();
 
         $this->assertEquals('R$ 15,00', $invoice->total());
         $this->assertFalse($invoice->hasDiscount());
         $this->assertInstanceOf(Carbon::class, $invoice->date());
+
+        $user = User::create([
+            'email' => 'gabriel2@teste.com.br',
+            'name' => 'Gabriel Peixoto 2',
+        ]);
+
+        // Create Subscription if charge
+        $user->newSubscription('main', 'gold')->chargeOnSuccess()->create($this->getTestFailToken());
+
+        $this->assertFalse($user->subscribed('main'));
+        $this->assertFalse($user->onPlan('gold'));
+
     }
 
     public function test_creating_subscription_with_trial()
@@ -192,6 +204,24 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
             "method" => "credit_card",
             "data" => [
                 "number" => "4111111111111111",
+                "verification_value" => "123",
+                "first_name" => "Joao",
+                "last_name" => "Silva",
+                "month" => "12",
+                "year" => "2013"
+            ]
+        ]);
+    }
+
+    protected function getTestFailToken()
+    {
+        Iugu::setApiKey(getenv('IUGU_APIKEY'));
+
+        return Iugu_PaymentToken::create([
+            "account_id" =>  getenv('ID_DA_CONTA'),
+            "method" => "credit_card",
+            "data" => [
+                "number" => "4012888888881881",
                 "verification_value" => "123",
                 "first_name" => "Joao",
                 "last_name" => "Silva",
