@@ -83,6 +83,14 @@ O primeiro argumento deve ser o nome da assinatura. Esse nome não será utiliza
 
 O método `create` automaticamente criará uma assinatura no Iugu.com e atualizará o seu banco de dados com o ID do cliente referente ao Iugu e outras informações relevantes. Você pode chamar o `create` sem passar nenhum parâmetro ou informar o token do cartão de crédito para que o usuário tenha uma forma de pagamento padrão. Veja como gerar o token em [iugu.js](https://iugu.com/referencias/iugu-js)
 
+Caso queira que a assinatura seja criada apenas após a comprovação do pagamento, basta chamar o método  `chargeOnSuccess` após `newSubscription`. **IMPORTANTE**: Esse modo de criar uma assinatura só funciona para o cliente que tenha um método de pagamento padrão, não funciona com boleto.
+```php
+$user = User::find(1);
+
+$user->newSubscription('main', 'gold')
+->chargeOnSuccess()
+->create($creditCardToken);
+```
 #### Dados adicionais
 Se você desejar adicionar informações extras ao usuário e assinatura, basta passar um terceiro parâmetro no método `newSubscription` para informações adicionais da assinatura e/ou um segundo parâmetro no método `create` para informações adicionais do cliente:
 ```php
@@ -181,7 +189,7 @@ if ($user->subscription('main')->onTrial()) {
     //
 }
 ```
-## Tratando os gatilhos (ou Webhooks) 
+## Tratando os gatilhos (ou Webhooks)
 [Gatilhos (ou Webhooks)](https://iugu.com/referencias/gatilhos) são endereços (URLs) para onde a Iugu dispara avisos (Via método POST) para certos eventos que ocorrem em sua conta. Por exemplo, se uma assinatura do usuário for cancelada e você precisar registrar isso em seu banco, você pode usar o gatilho. Para utilizar você precisa apontar uma rota para o método `handleWebhook`, a mesma rota que você configurou no seu painel do Iugu:
 ```php
 Route::post('webhook', '\Potelo\GuPayment\Http\Controllers\WebhookController@handleWebhook');
@@ -214,6 +222,8 @@ class MeuWebhookController extends WebhookController {
     }
 }
 ```
+
+Caso queira testar os webhooks em ambiente local, você pode utilizar o [ngrok](https://ngrok.com/).
 ## Faturas
 Você pode facilmente pegar as faturas de um usuário através do método `invoices`:
 ```php
