@@ -3,10 +3,8 @@
 namespace Potelo\GuPayment\Http\Controllers;
 
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Http\Request;
 use Potelo\GuPayment\Subscription;
-use Stripe\Event as StripeEvent;
 use Illuminate\Routing\Controller;
 use Symfony\Component\HttpFoundation\Response;
 

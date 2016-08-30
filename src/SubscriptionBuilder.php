@@ -49,6 +49,8 @@ class SubscriptionBuilder
      */
     protected $coupon;
 
+    private $charge_on_success = false;
+
     /**
      * Create a new subscription builder instance.
      *
@@ -103,15 +105,18 @@ class SubscriptionBuilder
     /**
      * Create a new Iugu subscription.
      *
-     * @param  string|null  $token
-     * @param  array  $options
-     * @return \Potelo\GuPayment\Subscription
+     * @param  string|null $token
+     * @param  array $options
      */
     public function create($token = null, array $options = [])
     {
         $customer = $this->getIuguCustomer($token, $options);
 
         $subscriptionIugu = $this->user->createIuguSubscription($this->buildPayload($customer->id));
+
+        if (isset($subscriptionIugu->errors)) {
+            return false;
+        }
 
         if ($this->skipTrial) {
             $trialEndsAt = null;
@@ -182,6 +187,7 @@ class SubscriptionBuilder
             'plan_identifier' => $this->plan,
             'expires_at' => $this->getTrialEndForPayload(),
             'customer_id' => $customerId,
+            'only_on_charge_success' => $this->charge_on_success,
             'custom_variables' => $customVariables
         ]);
     }
@@ -200,5 +206,12 @@ class SubscriptionBuilder
         if ($this->trialDays) {
             return Carbon::now()->addDays($this->trialDays);
         }
+    }
+
+    public function chargeOnSuccess()
+    {
+        $this->charge_on_success = true;
+
+        return $this;
     }
 }
