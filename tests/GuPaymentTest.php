@@ -114,7 +114,7 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
 
         // Invoice Tests
         $invoices = $user->invoices();
-        $invoice = $invoices->first();
+        $invoice = $invoices->last();
 
         $this->assertEquals('R$ 15,00', $invoice->total());
         $this->assertFalse($invoice->hasDiscount());
