@@ -95,9 +95,9 @@ trait GuPaymentTrait
      */
     public function onPlan($plan)
     {
-        return ! is_null($this->subscriptions->first(function ($key, $value) use ($plan) {
-            return $value->iugu_plan === $plan;
-        }));
+        $onPlan = $this->subscriptions->where('iugu_plan', $plan)->first();
+
+        return ! is_null($onPlan);
     }
 
     /**
@@ -133,10 +133,7 @@ trait GuPaymentTrait
     {
         return $this->subscriptions->sortByDesc(function ($value) {
             return $value->created_at->getTimestamp();
-        })
-            ->first(function ($key, $value) use ($subscription) {
-                return $value->name === $subscription;
-            });
+        })->where('name', $subscription)->first();
     }
 
 
