@@ -2,7 +2,7 @@
 
 namespace Potelo\GuPayment;
 
-use DOMPDF;
+use Dompdf\Dompdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\View;
 use Iugu_Invoice;
@@ -102,9 +102,9 @@ class Invoice
             require_once $configPath;
         }
 
-        $dompdf = new DOMPDF;
+        $dompdf = new Dompdf;
 
-        $dompdf->load_html($this->view($data)->render());
+        $dompdf->loadHtml($this->view($data)->render());
 
         $dompdf->render();
 
