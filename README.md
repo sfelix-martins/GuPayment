@@ -229,6 +229,10 @@ Você pode facilmente pegar as faturas de um usuário através do método `invoi
 ```php
 $invoices = $user->invoices();
 ```
+Esse método irá trazer apenas as faturas que já foram pagas, caso queira incluir as faturas pendentes, basta passar o primeiro parâmetro como `true`:
+```php
+$invoices = $user->invoices(true);
+```
 Você pode listar as faturas de um usuário e disponibilizar pdfs de cada uma delas. Por exemplo:
 ```html
 <table>

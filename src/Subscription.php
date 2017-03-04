@@ -34,8 +34,9 @@ class Subscription extends Model
     public function user()
     {
         $model = getenv('IUGU_MODEL') ?: config('services.iugu.model');
+        $column = getenv('IUGU_MODEL_FOREIGN_KEY') ?: config('services.iugu.model_foreign_key', 'user_id');
 
-        return $this->belongsTo($model, 'user_id');
+        return $this->belongsTo($model, $column);
     }
 
     /**

@@ -62,9 +62,12 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
      */
     public function testSubscriptionsCanBeCreated()
     {
+        // use the factory to create a Faker\Generator instance
+        $faker = Faker\Factory::create();
+
         $user = User::create([
-            'email' => 'gabriel@teste.com.br',
-            'name' => 'Gabriel Peixoto',
+            'email' => $faker->email,
+            'name' => $faker->name
         ]);
 
         // Create Subscription
@@ -114,15 +117,15 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
 
         // Invoice Tests
         $invoices = $user->invoices();
-        $invoice = $invoices->last();
+        $invoice = $invoices->first();
 
         $this->assertEquals('R$ 15,00', $invoice->total());
         $this->assertFalse($invoice->hasDiscount());
         $this->assertInstanceOf(Carbon::class, $invoice->date());
 
         $user = User::create([
-            'email' => 'gabriel2@teste.com.br',
-            'name' => 'Gabriel Peixoto 2',
+            'email' => $faker->email,
+            'name' => $faker->name
         ]);
 
         // Create Subscription if charge
@@ -135,9 +138,12 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
 
     public function test_creating_subscription_with_trial()
     {
+        // use the factory to create a Faker\Generator instance
+        $faker = Faker\Factory::create();
+
         $user = User::create([
-            'email' => 'gabriel@teste.com.br',
-            'name' => 'Gabriel Peixoto',
+            'email' => $faker->email,
+            'name' => $faker->name
         ]);
 
         // Create Subscription
@@ -167,9 +173,12 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
 
     public function test_marking_as_cancelled_from_webhook()
     {
+        // use the factory to create a Faker\Generator instance
+        $faker = Faker\Factory::create();
+
         $user = User::create([
-            'email' => 'gabriel@teste.com.br',
-            'name' => 'Gabriel Peixoto',
+            'email' => $faker->email,
+            'name' => $faker->name
         ]);
 
         // Create Subscription

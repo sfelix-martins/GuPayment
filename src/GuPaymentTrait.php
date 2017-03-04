@@ -144,7 +144,9 @@ trait GuPaymentTrait
      */
     public function subscriptions()
     {
-        return $this->hasMany(Subscription::class, 'user_id')->orderBy('created_at', 'desc');
+        $column = getenv('IUGU_MODEL_FOREIGN_KEY') ?: config('services.iugu.model_foreign_key', 'user_id');
+
+        return $this->hasMany(Subscription::class, $column)->orderBy('created_at', 'desc');
     }
 
     /**
