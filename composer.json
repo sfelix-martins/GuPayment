@@ -6,7 +6,7 @@
     "require": {
         "php": ">=5.5.9",
         "iugu/iugu": "1.0.6",
-        "dompdf/dompdf": "^0.7.0"
+        "dompdf/dompdf": "^0.8.0"
     },
     "authors": [
         {
