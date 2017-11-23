@@ -136,7 +136,7 @@ class Subscription extends Model
         if ($this->onTrial()) {
             $this->ends_at = $this->trial_ends_at;
         } else {
-            $this->ends_at = Carbon::createFromFormat('Y-m-d',
+            $this->ends_at = is_null($subscription->expires_at) ? Carbon::now() : Carbon::createFromFormat('Y-m-d',
                 $subscription->expires_at
             );
         }
