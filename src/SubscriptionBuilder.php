@@ -132,10 +132,9 @@ class SubscriptionBuilder
         $subscription->trial_ends_at = $trialEndsAt;
         $subscription->ends_at = null;
 
-        foreach($this->additionalData as $k => $v){
+        foreach ($this->additionalData as $k => $v) {
             // If column exists at database
-            if(Schema::hasColumn($subscription->getTable(), $k))
-            {
+            if (Schema::hasColumn($subscription->getTable(), $k)) {
                 $subscription->{$k} = $v;
             }
         }
@@ -154,7 +153,8 @@ class SubscriptionBuilder
     {
         if (! $this->user->iugu_id) {
             $customer = $this->user->createAsIuguCustomer(
-                $token, array_merge($options, array_filter(['coupon' => $this->coupon]))
+                $token,
+                array_merge($options, array_filter(['coupon' => $this->coupon]))
             );
         } else {
             $customer = $this->user->asIuguCustomer();
@@ -176,7 +176,7 @@ class SubscriptionBuilder
     protected function buildPayload($customerId)
     {
         $customVariables = [];
-        foreach($this->additionalData as $k => $v){
+        foreach ($this->additionalData as $k => $v) {
             $additionalData = [];
             $additionalData['name'] = $k;
             $additionalData['value'] = $v;

@@ -1,24 +1,36 @@
 <?php
 
+namespace Potelo\GuPayment\Tests;
+
+use Exception;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
+use Illuminate\Support\Collection;
+use Potelo\GuPayment\Tests\TestCase;
+use Potelo\GuPayment\Tests\Fixtures\User;
+use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Potelo\GuPayment\Http\Controllers\WebhookController;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-class GuPaymentTest extends PHPUnit_Framework_TestCase
+class GuPaymentTest extends TestCase
 {
+    use WithFaker;
+
     public static function setUpBeforeClass()
     {
-
         if (file_exists(__DIR__.'/../.env')) {
-            $dotenv = new Dotenv\Dotenv(__DIR__.'/../');
+            $dotenv = new \Dotenv\Dotenv(__DIR__.'/../');
             $dotenv->load();
         }
     }
 
     public function setUp()
     {
+        parent::setUp();
+
         Eloquent::unguard();
 
         $db = new DB;
@@ -62,18 +74,12 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
      */
     public function testSubscriptionsCanBeCreated()
     {
-        // use the factory to create a Faker\Generator instance
-        $faker = Faker\Factory::create();
-
-        $user = User::create([
-            'email' => $faker->email,
-            'name' => $faker->name
-        ]);
+        $user = $this->createUser();
 
         // Create Subscription
         $user->newSubscription('main', 'gold')->create($this->getTestToken());
 
-        $this->assertEquals(1, count($user->subscriptions));
+        $this->assertEquals(1, count($user->subscriptions()));
         $this->assertNotNull($user->subscription('main')->iugu_id);
 
         $this->assertTrue($user->subscribed('main'));
@@ -123,28 +129,18 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($invoice->hasDiscount());
         $this->assertInstanceOf(Carbon::class, $invoice->date());
 
-        $user = User::create([
-            'email' => $faker->email,
-            'name' => $faker->name
-        ]);
+        $user = $this->createUser();
 
         // Create Subscription if charge
         $user->newSubscription('main', 'gold')->chargeOnSuccess()->create($this->getTestFailToken());
 
         $this->assertFalse($user->subscribed('main'));
         $this->assertFalse($user->onPlan('gold'));
-
     }
 
-    public function test_creating_subscription_with_trial()
+    public function testCreatingSubscriptionWithTrial()
     {
-        // use the factory to create a Faker\Generator instance
-        $faker = Faker\Factory::create();
-
-        $user = User::create([
-            'email' => $faker->email,
-            'name' => $faker->name
-        ]);
+        $user = $this->createUser();
 
         // Create Subscription
         $user->newSubscription('main', 'gold')
@@ -171,15 +167,9 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(Carbon::today()->addDays(7)->day, $subscription->trial_ends_at->day);
     }
 
-    public function test_marking_as_cancelled_from_webhook()
+    public function testMarkingAsCancelledFromWebhook()
     {
-        // use the factory to create a Faker\Generator instance
-        $faker = Faker\Factory::create();
-
-        $user = User::create([
-            'email' => $faker->email,
-            'name' => $faker->name
-        ]);
+        $user = $this->createUser();
 
         // Create Subscription
         $user->newSubscription('main', 'gold')
@@ -204,12 +194,335 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($subscription->cancelled());
     }
 
+    /*
+     * Charge Tests
+     */
+    public function testGetCardsFromIugoCustomer()
+    {
+        $user = $this->createUser();
+
+        $user->createAsIuguCustomer($token = $this->getTestToken());
+
+        $cards = $user->cards();
+        $this->assertInstanceOf(Collection::class, $cards);
+        $this->assertEquals($cards->count(), 1);
+
+        $card = $cards->first()->asIuguCard()->data;
+
+        $this->assertEquals($token->extra_info, $card);
+    }
+
+    public function testCreateCardsToIuguCustomer()
+    {
+        $user = $this->createUser();
+
+        $user->createAsIuguCustomer($token = $this->getTestToken());
+        $card = $user->createCard($token = $this->getTestTokenMasterCard());
+
+        $this->assertEquals($token->extra_info, $card->asIuguCard()->data);
+    }
+
+    public function testCreateCardWithoutIuguCustomer()
+    {
+        $user = $this->createUser();
+
+        try {
+            $user->createCard($this->getTestToken());
+        } catch (Exception $e) {
+            $this->assertInstanceOf(InvalidArgumentException::class, $e);
+        }
+    }
+
+    public function testGetCardFromCustomerCards()
+    {
+        $user = $this->createUser();
+
+        try {
+            $user->createAsIuguCustomer(null);
+            $createdCard = $user->createCard($token = $this->getTestToken());
+
+            $card = $user->findCard($createdCard->id);
+        } catch (\IuguObjectNotFound $e) {
+            $this->fail('Service unavailable.');
+        }
+
+        $this->assertEquals(
+            $card->asIuguCard()->data,
+            $createdCard->asIuguCard()->data
+        );
+    }
+
+    public function testGetNotExistentCard()
+    {
+        $user = $this->createUser();
+
+        $user->createAsIuguCustomer(null);
+
+        $this->assertNull($user->findCard(1));
+    }
+
+    public function testDeleteACardFromCustomerCards()
+    {
+        $user = $this->createUser();
+
+        try {
+            $user->createAsIuguCustomer(null);
+            $cardCreated = $user->createCard($token = $this->getTestToken());
+
+            $user->deleteCard($cardCreated);
+        } catch (\IuguObjectNotFound $e) {
+            $this->fail('Service unavailable.');
+        }
+
+        try {
+            $user->findCardOrFail($cardCreated->id);
+        } catch (Exception $e) {
+            $this->assertInstanceOf(NotFoundHttpException::class, $e);
+        }
+    }
+
+    public function testFindCardOrFailWithExistentCard()
+    {
+        $user = $this->createUser();
+
+        $user->createAsIuguCustomer(null);
+        $createdCard = $user->createCard($this->getTestToken())->asIuguCard();
+        $foundCard = $user->findCardOrFail($createdCard->id)->asIuguCard();
+
+        $this->assertEquals($createdCard->id, $foundCard->id);
+        $this->assertEquals($createdCard->description, $foundCard->description);
+        $this->assertEquals($createdCard->item_type, $foundCard->item_type);
+        $this->assertEquals($createdCard->customer_id, $foundCard->customer_id);
+        $this->assertEquals($createdCard->data, $foundCard->data);
+    }
+
+    public function testDeleteAllCustomerCards()
+    {
+        $user = $this->createUser();
+
+        $user->createAsIuguCustomer(null);
+        $firstCard = $user->createCard($this->getTestToken());
+        $secondCard = $user->createCard($this->getTestTokenMasterCard());
+
+        $user->deleteCards();
+
+        try {
+            $user->findCardOrFail($firstCard->id);
+        } catch (Exception $e) {
+            $this->assertInstanceOf(NotFoundHttpException::class, $e);
+        }
+
+        try {
+            $user->findCardOrFail($secondCard->id);
+        } catch (Exception $e) {
+            $this->assertInstanceOf(NotFoundHttpException::class, $e);
+        }
+    }
+
+    public function testFindCardOrFailOfAnotherUser()
+    {
+        $user = $this->createUser();
+
+        try {
+            $user->createAsIuguCustomer(null);
+            $createdCard = $user->createCard($token = $this->getTestToken());
+        } catch (\IuguObjectNotFound $e) {
+            $this->fail('Service unavailable.');
+        }
+
+        $anotherUser = $this->createUser();
+
+        try {
+            $anotherUser->createAsIuguCustomer(null);
+            $anotherUser->findCardOrFail($createdCard->id);
+        } catch (Exception $e) {
+            $this->assertInstanceOf(NotFoundHttpException::class, $e);
+        }
+    }
+
+    public function testCreatingOneSingleChargeWithNewCard()
+    {
+        $user = $this->createUser();
+
+        try {
+            $user->createAsIuguCustomer(null);
+            $card = $user->createCard($token = $this->getTestTokenMasterCard());
+
+            $charge = $user->charge(250, [
+                'customer_payment_method_id' => $card->id,
+            ]);
+        } catch (\IuguObjectNotFound $e) {
+            $this->fail('Service unavailable.');
+        }
+
+        $this->assertEquals(
+            $card->asIuguCard()->id,
+            $charge->customer_payment_method_id
+        );
+        $this->assertEquals($user->iugu_id, $charge->customer_id);
+    }
+
+    public function testCreatingOneSingleChargeWithoutPaymentSource()
+    {
+        $user = $this->createUser();
+
+        $user->createAsIuguCustomer(null);
+
+        try {
+            $user->charge(100);
+        } catch (Exception $e) {
+            $this->assertInstanceOf(InvalidArgumentException::class, $e);
+        }
+    }
+
+    public function testCreatingOneSingleChargeWithoutCustomer()
+    {
+        $user = $this->createUser();
+
+        $token = $this->getTestToken();
+
+        try {
+            $charge = $user->charge(100, [
+                'token' => $token->id,
+            ]);
+        } catch (Exception $e) {
+            $this->assertInstanceOf(InvalidArgumentException::class, $e);
+        }
+    }
+
+    public function testCreatingOneSingleChargeWithJustInvoiceId()
+    {
+        $user = $this->createUser();
+        $user->createAsIuguCustomer($this->getTestToken());
+        $charge = $user->charge(100);
+
+        $anotherCharge = $user->charge(200, [
+            'invoice_id' => $charge->invoice_id
+        ]);
+
+        // The error message 'A fatura cobrada precisa estar pendente' is returned
+        $this->assertTrue(isset($anotherCharge->errors));
+    }
+
+    public function testCreatingOneSingleCharge()
+    {
+        $user = $this->createUser();
+
+        try {
+            $user->createAsIuguCustomer($this->getTestToken());
+            $charge = $user->charge(100);
+        } catch (\IuguObjectNotFound $e) {
+            $this->fail('Service unavailable');
+        }
+
+        $this->assertTrue($charge->success);
+        $this->assertEquals($charge->items[0]['quantity'], 1);
+        $this->assertEquals($charge->items[0]['price_cents'], 100);
+    }
+
+    public function testCreatingOneSingleChargePassingItems()
+    {
+        $user = $this->createUser();
+
+        try {
+            $user->createAsIuguCustomer($this->getTestToken());
+            $charge = $user->charge(100, [
+                'items' => [
+                    ['description' => 'First Item',  'quantity' => 1, 'price_cents' => 100],
+                    ['description' => 'Second Item', 'quantity' => 1, 'price_cents' => 250],
+                    ['description' => 'Third Item',  'quantity' => 2, 'price_cents' => 150],
+                ],
+            ]);
+        } catch (\IuguObjectNotFound $e) {
+            $this->fail('Service unavailable');
+        }
+
+        $this->assertTrue($charge->success);
+
+        $this->assertEquals($charge->items[0]['description'], 'First Item');
+        $this->assertEquals($charge->items[0]['quantity'], 1);
+        $this->assertEquals($charge->items[0]['price_cents'], 100);
+
+        $this->assertEquals($charge->items[1]['description'], 'Second Item');
+        $this->assertEquals($charge->items[1]['quantity'], 1);
+        $this->assertEquals($charge->items[1]['price_cents'], 250);
+
+        $this->assertEquals($charge->items[2]['description'], 'Third Item');
+        $this->assertEquals($charge->items[2]['quantity'], 2);
+        $this->assertEquals($charge->items[2]['price_cents'], 150);
+    }
+
+    public function testCreatingOneSingleChargePassingToken()
+    {
+        $user = $this->createUser();
+
+        try {
+            $token = $this->getTestToken();
+            $charge = $user->charge(100, [
+                'token' => $token->id,
+                'email' => $user->email,
+            ]);
+        } catch (\IuguObjectNotFound $e) {
+            $this->fail('Service unavailable');
+        }
+
+        $this->assertTrue($charge->success);
+        $this->assertEquals($charge->token, $token->id);
+        $this->assertEquals($charge->email, $user->email);
+        $this->assertEquals($charge->items[0]['quantity'], 1);
+        $this->assertEquals($charge->items[0]['price_cents'], 100);
+    }
+
+    public function testCreatingOneSingleChargePassingItemsAndToken()
+    {
+        $user = $this->createUser();
+
+        try {
+            $token = $this->getTestToken();
+            $charge = $user->charge(100, [
+                'token' => $token->id,
+                'email' => $user->email,
+                'items' => [
+                    ['description' => 'First Item',  'quantity' => 1, 'price_cents' => 100],
+                    ['description' => 'Second Item', 'quantity' => 1, 'price_cents' => 250],
+                    ['description' => 'Third Item',  'quantity' => 2, 'price_cents' => 150],
+                ],
+            ]);
+        } catch (\IuguObjectNotFound $e) {
+            $this->fail('Service unavailable');
+        }
+
+        $this->assertTrue($charge->success);
+        $this->assertEquals($charge->token, $token->id);
+        $this->assertEquals($charge->email, $user->email);
+
+        $this->assertEquals($charge->items[0]['description'], 'First Item');
+        $this->assertEquals($charge->items[0]['quantity'], 1);
+        $this->assertEquals($charge->items[0]['price_cents'], 100);
+
+        $this->assertEquals($charge->items[1]['description'], 'Second Item');
+        $this->assertEquals($charge->items[1]['quantity'], 1);
+        $this->assertEquals($charge->items[1]['price_cents'], 250);
+
+        $this->assertEquals($charge->items[2]['description'], 'Third Item');
+        $this->assertEquals($charge->items[2]['quantity'], 2);
+        $this->assertEquals($charge->items[2]['price_cents'], 150);
+    }
+
+    protected function createUser()
+    {
+        return User::create([
+            'email' => $this->faker()->email,
+            'name' => $this->faker()->name,
+        ]);
+    }
+
     protected function getTestToken()
     {
-        Iugu::setApiKey(getenv('IUGU_APIKEY'));
+        \Iugu::setApiKey(getenv('IUGU_APIKEY'));
 
-        return Iugu_PaymentToken::create([
-            "account_id" =>  getenv('ID_DA_CONTA'),
+        return \Iugu_PaymentToken::create([
+            "account_id" =>  getenv('IUGU_ID'),
             "method" => "credit_card",
             "data" => [
                 "number" => "4111111111111111",
@@ -217,17 +530,35 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
                 "first_name" => "Joao",
                 "last_name" => "Silva",
                 "month" => "12",
-                "year" => "2013"
-            ]
+                "year" => Carbon::now()->addYear()->year,
+            ],
+        ]);
+    }
+
+    protected function getTestTokenMasterCard()
+    {
+        \Iugu::setApiKey(getenv('IUGU_APIKEY'));
+
+        return \Iugu_PaymentToken::create([
+            "account_id" =>  getenv('IUGU_ID'),
+            "method" => "credit_card",
+            "data" => [
+                "number" => "5555555555554444",
+                "verification_value" => "123",
+                "first_name" => "Joao",
+                "last_name" => "Silva",
+                "month" => "12",
+                "year" => Carbon::now()->addYear()->year,
+            ],
         ]);
     }
 
     protected function getTestFailToken()
     {
-        Iugu::setApiKey(getenv('IUGU_APIKEY'));
+        \Iugu::setApiKey(getenv('IUGU_APIKEY'));
 
-        return Iugu_PaymentToken::create([
-            "account_id" =>  getenv('ID_DA_CONTA'),
+        return \Iugu_PaymentToken::create([
+            "account_id" =>  getenv('IUGU_ID'),
             "method" => "credit_card",
             "data" => [
                 "number" => "4012888888881881",
@@ -235,8 +566,8 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
                 "first_name" => "Joao",
                 "last_name" => "Silva",
                 "month" => "12",
-                "year" => "2013"
-            ]
+                "year" => Carbon::now()->addYear()->year,
+            ],
         ]);
     }
 
@@ -252,9 +583,4 @@ class GuPaymentTest extends PHPUnit_Framework_TestCase
     {
         return Eloquent::getConnectionResolver()->connection();
     }
-}
-
-class User extends Illuminate\Database\Eloquent\Model
-{
-    use \Potelo\GuPayment\GuPaymentTrait;
 }

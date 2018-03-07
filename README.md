@@ -252,3 +252,90 @@ return $user->downloadInvoice($invoiceId, [
         'product' => 'Seu Produto',
     ]);
 ```
+
+## Cobrança simples
+
+Se você quiser fazer uma cobrança simples com o cartão de crédito, você pode usar o método de `charge` em uma instância de um usuário que use o traço `GuPaymentTrait`.
+
+```php
+// Iugu aceita cobranças em centavos
+$user->charge(100);
+```
+
+O método `charge` aceita um array como segundo parâmetro, permitindo que você passe algumas opções desejadas para criação de uma cobrança no Iugu. Consulte a [documentação do Iugu](https://dev.iugu.com/v1.0/reference#testinput-1) para saber as opções disponíveis ao criar uma cobrança:
+
+```php
+$user->charge(100, [
+    'customer_payment_method_id' => $card->id,
+]);
+```
+
+Por padrão um item será criado com as seguintes definições:
+
+```
+description = 'Nova cobrança'
+quantity = 1
+price_cents = Valor do primeiro parâmetro
+```
+
+Sinta-se livre para adicionar seus próprios items como preferir no segundo parâmetro:
+
+```
+user->charge(null, [
+    'items' => [
+        ['description' => 'Primeiro Item', 'quantity' => 10, 'price_cents' => 200],
+    ]
+]);
+```
+
+OBS: Se um array de items for passado no segundo argumento o item padrão não será adicionado.
+
+## Métodos de Pagamento (Cartões)
+
+Você pode gerenciar seus métodos de pagamento. Para criar um cartão utilize o método `createCard`:
+
+```php
+// O usuário precisa ser um cliente iugu
+$user->createAsIuguCustomer();
+
+$user->createCard($iuguToken);
+```
+
+O método aceita um array como segundo argumento com as opções disponíveis para criação de um método de pagamento. O cartão é criado sendo definido como `default` nos cartões do cliente. Se quiser alterar esse comportamento passe a chave `set_as_default` com o valor `false` nas opções do segundo parâmetro do método:
+
+```
+$user->createCard($iuguToken, [
+    'set_as_default' => false,
+]);
+```
+
+Para obter os cartões de um cliente você pederá utilizar os métodos `cards` (Retorna uma `Illuminate\Support\Collection` de cartões), `findCard` (Retorna uma instância de `Potelo\GuPayment\Card` ou `null` se o cartão não for encontrado) ou `findCardOrFail` (Retorna uma instância de `Potelo\GuPayment\Card` ou lança uma exceção caso o cartão não seja encontrado):
+
+```php
+// Coleção de cartões
+$user->cards();
+
+// Um cartão ou null
+$card = $user->findCard($cardId);
+
+try {
+    $card = $user->findCardOrFail($cardId);
+} catch(Exception $e) {
+    //
+}
+```
+
+Para deletar um cartão apenas obtenha uma instância de `Potelo\GuPayment\Card` e use o metodo `deleteCard`:
+
+```php
+$card = $user->findCard($cardId);
+
+$user->deleteCard($card);
+
+```
+
+Para deletar todos os cartões use `deleteCards`:
+
+```php
+$user->deleteCards();
+```
