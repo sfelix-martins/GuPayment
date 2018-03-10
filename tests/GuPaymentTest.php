@@ -72,127 +72,127 @@ class GuPaymentTest extends TestCase
     /**
      * Tests.
      */
-    // public function testSubscriptionsCanBeCreated()
-    // {
-    //     $user = $this->createUser();
+    public function testSubscriptionsCanBeCreated()
+    {
+        $user = $this->createUser();
 
-    //     // Create Subscription
-    //     $user->newSubscription('main', 'gold')->create($this->getTestToken());
+        // Create Subscription
+        $user->newSubscription('main', 'gold')->create($this->getTestToken());
 
-    //     $this->assertEquals(1, count($user->subscriptions()));
-    //     $this->assertNotNull($user->subscription('main')->iugu_id);
+        $this->assertEquals(1, count($user->subscriptions()));
+        $this->assertNotNull($user->subscription('main')->iugu_id);
 
-    //     $this->assertTrue($user->subscribed('main'));
-    //     $this->assertTrue($user->onPlan('gold'));
-    //     $this->assertFalse($user->onPlan('something'));
-    //     $this->assertTrue($user->subscribed('main', 'gold'));
-    //     $this->assertFalse($user->subscribed('main', 'gold-2'));
-    //     $this->assertTrue($user->subscription('main')->active());
-    //     $this->assertFalse($user->subscription('main')->cancelled());
-    //     $this->assertFalse($user->subscription('main')->onGracePeriod());
+        $this->assertTrue($user->subscribed('main'));
+        $this->assertTrue($user->onPlan('gold'));
+        $this->assertFalse($user->onPlan('something'));
+        $this->assertTrue($user->subscribed('main', 'gold'));
+        $this->assertFalse($user->subscribed('main', 'gold-2'));
+        $this->assertTrue($user->subscription('main')->active());
+        $this->assertFalse($user->subscription('main')->cancelled());
+        $this->assertFalse($user->subscription('main')->onGracePeriod());
 
-    //     // Cancel Subscription
-    //     $subscription = $user->subscription('main');
-    //     $subscription->cancel();
+        // Cancel Subscription
+        $subscription = $user->subscription('main');
+        $subscription->cancel();
 
-    //     $this->assertTrue($subscription->active());
-    //     $this->assertTrue($subscription->cancelled());
-    //     $this->assertTrue($subscription->onGracePeriod());
+        $this->assertTrue($subscription->active());
+        $this->assertTrue($subscription->cancelled());
+        $this->assertTrue($subscription->onGracePeriod());
 
-    //     // Modify Ends Date To Past
-    //     $oldGracePeriod = $subscription->ends_at;
-    //     $subscription->fill(['ends_at' => Carbon::now()->subDays(5)])->save();
+        // Modify Ends Date To Past
+        $oldGracePeriod = $subscription->ends_at;
+        $subscription->fill(['ends_at' => Carbon::now()->subDays(5)])->save();
 
-    //     $this->assertFalse($subscription->active());
-    //     $this->assertTrue($subscription->cancelled());
-    //     $this->assertFalse($subscription->onGracePeriod());
+        $this->assertFalse($subscription->active());
+        $this->assertTrue($subscription->cancelled());
+        $this->assertFalse($subscription->onGracePeriod());
 
-    //     $subscription->fill(['ends_at' => $oldGracePeriod])->save();
+        $subscription->fill(['ends_at' => $oldGracePeriod])->save();
 
-    //     // Resume Subscription
-    //     $subscription->resume();
+        // Resume Subscription
+        $subscription->resume();
 
-    //     $this->assertTrue($subscription->active());
-    //     $this->assertFalse($subscription->cancelled());
-    //     $this->assertFalse($subscription->onGracePeriod());
+        $this->assertTrue($subscription->active());
+        $this->assertFalse($subscription->cancelled());
+        $this->assertFalse($subscription->onGracePeriod());
 
-    //     // Swap Plan
-    //     $subscription->swap('silver');
+        // Swap Plan
+        $subscription->swap('silver');
 
-    //     $this->assertEquals('silver', $subscription->iugu_plan);
+        $this->assertEquals('silver', $subscription->iugu_plan);
 
-    //     // Invoice Tests
-    //     $invoices = $user->invoices();
-    //     $invoice = $invoices->first();
+        // Invoice Tests
+        $invoices = $user->invoices();
+        $invoice = $invoices->first();
 
-    //     $this->assertEquals('R$ 15,00', $invoice->total());
-    //     $this->assertFalse($invoice->hasDiscount());
-    //     $this->assertInstanceOf(Carbon::class, $invoice->date());
+        $this->assertEquals('R$ 15,00', $invoice->total());
+        $this->assertFalse($invoice->hasDiscount());
+        $this->assertInstanceOf(Carbon::class, $invoice->date());
 
-    //     $user = $this->createUser();
+        $user = $this->createUser();
 
-    //     // Create Subscription if charge
-    //     $user->newSubscription('main', 'gold')->chargeOnSuccess()->create($this->getTestFailToken());
+        // Create Subscription if charge
+        $user->newSubscription('main', 'gold')->chargeOnSuccess()->create($this->getTestFailToken());
 
-    //     $this->assertFalse($user->subscribed('main'));
-    //     $this->assertFalse($user->onPlan('gold'));
-    // }
+        $this->assertFalse($user->subscribed('main'));
+        $this->assertFalse($user->onPlan('gold'));
+    }
 
-    // public function testCreatingSubscriptionWithTrial()
-    // {
-    //     $user = $this->createUser();
+    public function testCreatingSubscriptionWithTrial()
+    {
+        $user = $this->createUser();
 
-    //     // Create Subscription
-    //     $user->newSubscription('main', 'gold')
-    //         ->trialDays(7)->create($this->getTestToken());
+        // Create Subscription
+        $user->newSubscription('main', 'gold')
+            ->trialDays(7)->create($this->getTestToken());
 
-    //     $subscription = $user->subscription('main');
+        $subscription = $user->subscription('main');
 
-    //     $this->assertTrue($subscription->active());
-    //     $this->assertTrue($subscription->onTrial());
-    //     $this->assertEquals(Carbon::today()->addDays(7)->day, $subscription->trial_ends_at->day);
+        $this->assertTrue($subscription->active());
+        $this->assertTrue($subscription->onTrial());
+        $this->assertEquals(Carbon::today()->addDays(7)->day, $subscription->trial_ends_at->day);
 
-    //     // Cancel Subscription
-    //     $subscription->cancel();
+        // Cancel Subscription
+        $subscription->cancel();
 
-    //     $this->assertTrue($subscription->active());
-    //     $this->assertTrue($subscription->onGracePeriod());
+        $this->assertTrue($subscription->active());
+        $this->assertTrue($subscription->onGracePeriod());
 
-    //     // Resume Subscription
-    //     $subscription->resume();
+        // Resume Subscription
+        $subscription->resume();
 
-    //     $this->assertTrue($subscription->active());
-    //     $this->assertFalse($subscription->onGracePeriod());
-    //     $this->assertTrue($subscription->onTrial());
-    //     $this->assertEquals(Carbon::today()->addDays(7)->day, $subscription->trial_ends_at->day);
-    // }
+        $this->assertTrue($subscription->active());
+        $this->assertFalse($subscription->onGracePeriod());
+        $this->assertTrue($subscription->onTrial());
+        $this->assertEquals(Carbon::today()->addDays(7)->day, $subscription->trial_ends_at->day);
+    }
 
-    // public function testMarkingAsCancelledFromWebhook()
-    // {
-    //     $user = $this->createUser();
+    public function testMarkingAsCancelledFromWebhook()
+    {
+        $user = $this->createUser();
 
-    //     // Create Subscription
-    //     $user->newSubscription('main', 'gold')
-    //         ->create($this->getTestToken());
+        // Create Subscription
+        $user->newSubscription('main', 'gold')
+            ->create($this->getTestToken());
 
-    //     $subscription = $user->subscription('main');
+        $subscription = $user->subscription('main');
 
-    //     $request = Request::create('/', 'POST', [
-    //         'event' => 'subscription.expired',
-    //         'data' => [
-    //             "id"  => $subscription->iugu_id,
-    //             "customer_name" => "Gabriel Peixoto",
-    //             "customer_email" => "gabriel@teste.com.br",
-    //             "expires_at" => Carbon::now()->format('Y-m-d')
-    //         ],
-    //     ]);
-    //     $controller = new WebhookController();
-    //     $response = $controller->handleWebhook($request);
-    //     $this->assertEquals(200, $response->getStatusCode());
-    //     $user = $user->fresh();
-    //     $subscription = $user->subscription('main');
-    //     $this->assertTrue($subscription->cancelled());
-    // }
+        $request = Request::create('/', 'POST', [
+            'event' => 'subscription.expired',
+            'data' => [
+                "id"  => $subscription->iugu_id,
+                "customer_name" => "Gabriel Peixoto",
+                "customer_email" => "gabriel@teste.com.br",
+                "expires_at" => Carbon::now()->format('Y-m-d')
+            ],
+        ]);
+        $controller = new WebhookController();
+        $response = $controller->handleWebhook($request);
+        $this->assertEquals(200, $response->getStatusCode());
+        $user = $user->fresh();
+        $subscription = $user->subscription('main');
+        $this->assertTrue($subscription->cancelled());
+    }
 
     /*
      * Charge Tests
