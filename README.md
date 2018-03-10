@@ -253,58 +253,28 @@ return $user->downloadInvoice($invoiceId, [
     ]);
 ```
 
-## Cobrança simples
+## Clientes e métodos de Pagamento (Cartões)
 
-Se você quiser fazer uma cobrança simples com o cartão de crédito, você pode usar o método de `charge` em uma instância de um usuário que use o traço `GuPaymentTrait`.
-
+Para gerenciar os métodos de pagamento, o cliente precisa existir no Iugu. Quando você utiliza o método `newSubscription` o cliente é criado automaticamente. Porém para criar um cliente manualmente, você pode utilizar o método `createAsIuguCustomer`.
 ```php
-// Iugu aceita cobranças em centavos
-$user->charge(100);
-```
-
-O método `charge` aceita um array como segundo parâmetro, permitindo que você passe algumas opções desejadas para criação de uma cobrança no Iugu. Consulte a [documentação do Iugu](https://dev.iugu.com/v1.0/reference#testinput-1) para saber as opções disponíveis ao criar uma cobrança:
-
-```php
-$user->charge(100, [
-    'customer_payment_method_id' => $card->id,
-]);
-```
-
-Por padrão um item será criado com as seguintes definições:
-
-```
-description = 'Nova cobrança'
-quantity = 1
-price_cents = Valor do primeiro parâmetro
-```
-
-Sinta-se livre para adicionar seus próprios items como preferir no segundo parâmetro:
-
-```
-user->charge(null, [
-    'items' => [
-        ['description' => 'Primeiro Item', 'quantity' => 10, 'price_cents' => 200],
-    ]
-]);
-```
-
-OBS: Se um array de items for passado no segundo argumento o item padrão não será adicionado.
-
-## Métodos de Pagamento (Cartões)
-
-Você pode gerenciar seus métodos de pagamento. Para criar um cartão utilize o método `createCard`:
-
-```php
-// O usuário precisa ser um cliente iugu
+// Criar cliente no Iugu
 $user->createAsIuguCustomer();
 
-$user->createCard($iuguToken);
+// Criar cliente no Iugu com token do cartão de crédito
+$user->createAsIuguCustomer($creditCardToken);
+
+```
+
+Após ter um cliente cadastrado no Iugu, você pode gerenciar seus métodos de pagamento. Para criar um cartão utilize o método `createCard`:
+
+```php
+$user->createCard($creditCardToken);
 ```
 
 O método aceita um array como segundo argumento com as opções disponíveis para criação de um método de pagamento. O cartão é criado sendo definido como `default` nos cartões do cliente. Se quiser alterar esse comportamento passe a chave `set_as_default` com o valor `false` nas opções do segundo parâmetro do método:
 
 ```
-$user->createCard($iuguToken, [
+$user->createCard($creditCardToken, [
     'set_as_default' => false,
 ]);
 ```
@@ -339,3 +309,43 @@ Para deletar todos os cartões use `deleteCards`:
 ```php
 $user->deleteCards();
 ```
+
+
+## Cobrança simples
+
+Se você quiser fazer uma cobrança simples com o cartão de crédito, você pode usar o método de `charge` em uma instância de um usuário que use o Trait `GuPaymentTrait`. Para utilizar a cobrança simples nesse pacote, é necessário que o cliente já esteja cadastrado no Iugu.
+
+```php
+// Iugu aceita cobranças em centavos
+$user->charge(100);
+```
+
+O método `charge` aceita um array como segundo parâmetro, permitindo que você passe algumas opções desejadas para criação de uma cobrança no Iugu. Consulte a [documentação do Iugu](https://dev.iugu.com/v1.0/reference#testinput-1) para saber as opções disponíveis ao criar uma cobrança:
+
+```php
+$user->charge(100, [
+    'customer_payment_method_id' => $card->id,
+]);
+```
+
+Por padrão um item será criado com as seguintes definições:
+
+```
+description = 'Nova cobrança'
+quantity = 1
+price_cents = Valor do primeiro parâmetro
+```
+
+Sinta-se livre para adicionar seus próprios items como preferir no segundo parâmetro:
+
+```
+user->charge(null, [
+    'items' => [
+        ['description' => 'Primeiro Item', 'quantity' => 10, 'price_cents' => 200],
+        ['description' => 'Segundo Item', 'quantity' => 2, 'price_cents' => 200],
+    ]
+]);
+```
+
+OBS: Se um array de items for passado no segundo argumento o item padrão não será adicionado.
+
