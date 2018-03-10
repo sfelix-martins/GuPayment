@@ -1,0 +1,45 @@
+language: php
+
+env:
+  global:
+    - setup=stable
+
+matrix:
+  include:
+    - php: 5.6
+      env:
+        - testbench=3.4.x
+    - php: 5.6
+      env:
+        - testbench=3.4.x
+    - php: 5.6
+      env:
+        - testbench=3.4.x
+    - php: 7.0
+      env:
+        - testbench=3.4.x
+    - php: 7.0
+      env:
+        - testbench=3.5.x
+    - php: 7.1
+      env:
+        - testbench=3.5.x
+    - php: 7.1
+      env:
+        - testbench=3.6.x
+    - php: 7.2
+      env:
+        - testbench=3.5.x
+    - php: 7.2
+      env:
+        - testbench=3.6.x
+
+sudo: false
+
+install:
+  - composer require orchestra/testbench:${testbench} --dev --no-update
+  - if [[ $setup = 'stable' ]]; then travis_retry composer update --prefer-dist --no-interaction --prefer-stable; fi
+  - if [[ $setup = 'lowest' ]]; then travis_retry composer update --prefer-dist --no-interaction --prefer-lowest --prefer-stable; fi
+
+script:
+  - vendor/bin/phpunit
