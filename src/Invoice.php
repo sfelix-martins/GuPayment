@@ -81,9 +81,10 @@ class Invoice
      */
     public function view(array $data)
     {
-        return View::make('gu-payment::receipt', array_merge(
-            $data, ['invoice' => $this, 'user' => $this->user]
-        ));
+        return View::make(
+            'gu-payment::receipt',
+            array_merge($data, ['invoice' => $this, 'user' => $this->user])
+        );
     }
 
     /**
