@@ -549,7 +549,6 @@ class GuPaymentTest extends TestCase
         return User::create([
             'email' => $this->faker->email,
             'name' => $this->faker->name,
-            'iugu_id' => null,
         ]);
     }
 
