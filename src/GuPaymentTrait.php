@@ -69,7 +69,7 @@ trait GuPaymentTrait
 
         if (! array_key_exists('token', $options) &&
             ! array_key_exists('customer_payment_method_id', $options) &&
-            $defaultCard
+            $defaultCard = isset($defaultCard) ? $defaultCard : $this->defaultCard()
         ) {
             $options['customer_payment_method_id'] = $defaultCard->id;
         }
@@ -128,7 +128,7 @@ trait GuPaymentTrait
      * @param  array $options
      * @return \Iugu_Customer
      */
-    public function createAsIuguCustomer($token, array $options = [])
+    public function createAsIuguCustomer($token = null, array $options = [])
     {
         $options = array_merge($options, ['email' => $this->email]);
 
@@ -315,9 +315,8 @@ trait GuPaymentTrait
         return $this->subscriptions->sortByDesc(function ($value) {
             return $value->created_at->getTimestamp();
         })
-        ->first(function ($value) use ($subscription) {
-            return $value->name === $subscription;
-        });
+        ->where('name', $subscription)
+        ->first();
     }
 
     /**
