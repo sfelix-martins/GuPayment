@@ -19,8 +19,6 @@ class GuPaymentTest extends TestCase
 {
     use WithFaker;
 
-    protected $faker;
-
     public static function setUpBeforeClass()
     {
         if (file_exists(__DIR__.'/../.env')) {
