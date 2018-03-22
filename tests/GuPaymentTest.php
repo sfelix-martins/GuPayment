@@ -242,7 +242,7 @@ class GuPaymentTest extends TestCase
         $user = $this->createUser();
 
         try {
-            $user->createAsIuguCustomer();
+            $user->createAsIuguCustomer(null);
             $createdCard = $user->createCard($token = $this->getTestToken());
 
             $card = $user->findCard($createdCard->id);
@@ -260,7 +260,7 @@ class GuPaymentTest extends TestCase
     {
         $user = $this->createUser();
 
-        $user->createAsIuguCustomer();
+        $user->createAsIuguCustomer(null);
 
         $this->assertNull($user->findCard(1));
     }
@@ -270,7 +270,7 @@ class GuPaymentTest extends TestCase
         $user = $this->createUser();
 
         try {
-            $user->createAsIuguCustomer();
+            $user->createAsIuguCustomer(null);
             $cardCreated = $user->createCard($token = $this->getTestToken());
 
             $user->deleteCard($cardCreated);
@@ -289,7 +289,7 @@ class GuPaymentTest extends TestCase
     {
         $user = $this->createUser();
 
-        $user->createAsIuguCustomer();
+        $user->createAsIuguCustomer(null);
         $createdCard = $user->createCard($this->getTestToken())->asIuguCard();
         $foundCard = $user->findCardOrFail($createdCard->id)->asIuguCard();
 
@@ -304,7 +304,7 @@ class GuPaymentTest extends TestCase
     {
         $user = $this->createUser();
 
-        $user->createAsIuguCustomer();
+        $user->createAsIuguCustomer(null);
         $firstCard = $user->createCard($this->getTestToken());
         $secondCard = $user->createCard($this->getTestTokenMasterCard());
 
@@ -328,7 +328,7 @@ class GuPaymentTest extends TestCase
         $user = $this->createUser();
 
         try {
-            $user->createAsIuguCustomer();
+            $user->createAsIuguCustomer(null);
             $createdCard = $user->createCard($token = $this->getTestToken());
         } catch (\IuguObjectNotFound $e) {
             $this->fail('Service unavailable.');
@@ -337,7 +337,7 @@ class GuPaymentTest extends TestCase
         $anotherUser = $this->createUser();
 
         try {
-            $anotherUser->createAsIuguCustomer();
+            $anotherUser->createAsIuguCustomer(null);
             $anotherUser->findCardOrFail($createdCard->id);
         } catch (Exception $e) {
             $this->assertInstanceOf(NotFoundHttpException::class, $e);
@@ -349,7 +349,7 @@ class GuPaymentTest extends TestCase
         $user = $this->createUser();
 
         try {
-            $user->createAsIuguCustomer();
+            $user->createAsIuguCustomer(null);
             $card = $user->createCard($token = $this->getTestTokenMasterCard());
 
             $charge = $user->charge(250, [
@@ -371,7 +371,7 @@ class GuPaymentTest extends TestCase
         $user = $this->createUser();
 
         try {
-            $user->createAsIuguCustomer();
+            $user->createAsIuguCustomer(null);
             $charge = $user->charge(250, [
                 'method' => 'bank_slip',
                 'payer' => [
@@ -403,7 +403,7 @@ class GuPaymentTest extends TestCase
     {
         $user = $this->createUser();
 
-        $user->createAsIuguCustomer();
+        $user->createAsIuguCustomer(null);
 
         try {
             $user->charge(100);
