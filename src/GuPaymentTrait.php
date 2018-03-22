@@ -141,6 +141,8 @@ trait GuPaymentTrait
             $options
         );
 
+        dd($customer);
+
         $this->iugu_id = $customer->id;
 
         $this->save();
@@ -434,10 +436,6 @@ trait GuPaymentTrait
      */
     public function asIuguCustomer()
     {
-        dd([
-            $this->iugu_id,
-            (! $this->iugu_id)
-        ]);
         if (! $this->iugu_id) {
             throw new InvalidArgumentException(class_basename($this).' is not a Iugu customer. See the createAsIuguCustomer method.');
         }
