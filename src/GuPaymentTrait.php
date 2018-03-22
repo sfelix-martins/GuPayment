@@ -141,8 +141,6 @@ trait GuPaymentTrait
             $options
         );
 
-        dd($customer);
-
         $this->iugu_id = $customer->id;
 
         $this->save();
