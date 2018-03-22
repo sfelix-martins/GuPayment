@@ -67,7 +67,8 @@ trait GuPaymentTrait
             );
         }
 
-        if (! array_key_exists('token', $options) &&
+        if (! array_key_exists('method', $options) &&
+            ! array_key_exists('token', $options) &&
             ! array_key_exists('customer_payment_method_id', $options) &&
             $defaultCard = isset($defaultCard) ? $defaultCard : $this->defaultCard()
         ) {

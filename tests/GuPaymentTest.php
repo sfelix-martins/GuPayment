@@ -397,6 +397,39 @@ class GuPaymentTest extends TestCase
         $this->assertEquals($charge->method, 'bank_slip');
     }
 
+    public function testSingleBankSlipChargeWithDefaultPaymentCardDefined()
+    {
+        $user = $this->createUser();
+
+        try {
+            $user->createAsIuguCustomer($this->getTestToken());
+            $charge = $user->charge(250, [
+                'method' => 'bank_slip',
+                'payer' => [
+                    'cpf_cnpj' => $this->faker->unique()->cpf,
+                    'name' => $this->faker->firstName,
+                    'email' => $this->faker->unique()->safeEmail,
+                    'phone_prefix' => $this->faker->areaCode,
+                    'phone' => $this->faker->cellphone,
+                    'address' => [
+                        'street'     => $this->faker->streetName,
+                        'number'     => $this->faker->buildingNumber,
+                        'district'   => $this->faker->streetAddress,
+                        'city'       => $this->faker->city,
+                        'state'      => $this->faker->stateAbbr,
+                        'zip_code'   => '72603-212',
+                        'complement' => $this->faker->secondaryAddress,
+                    ]
+                ]
+            ]);
+        } catch (\IuguObjectNotFound $e) {
+            $this->fail('Service unavailable.');
+        }
+
+        $this->assertTrue($charge->success);
+        $this->assertEquals($charge->method, 'bank_slip');
+    }
+
     public function testCreatingOneSingleChargeWithoutPaymentSource()
     {
         $user = $this->createUser();
